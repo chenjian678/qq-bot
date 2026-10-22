@@ -1,0 +1,29 @@
+[
+  {
+    "type": "image",
+    "path": "emoji_assets/震惊.gif",
+    "name": "震惊",
+    "meaning": "看到离谱事情时使用",
+    "keywords": ["震惊", "离谱", "意外", "真的假的"],
+    "weight": 3,
+    "enabled": true
+  },
+  {
+    "type": "image",
+    "path": "emoji_assets/无语.png",
+    "name": "无语",
+    "meaning": "吐槽或不知道说什么时使用",
+    "keywords": ["无语", "抽象", "绷不住", "吐槽"],
+    "weight": 2,
+    "enabled": true
+  },
+  {
+    "type": "face",
+    "id": "13",
+    "name": "呲牙",
+    "meaning": "轻松、开玩笑、得意",
+    "keywords": ["哈哈", "开玩笑", "得意"],
+    "weight": 1,
+    "enabled": true
+  }
+]
