@@ -48,21 +48,42 @@ BING_IMAGE_SEARCH_URL = "https://www.bing.com/images/search"
 BRAVE_IMAGE_API_KEY = os.getenv("BRAVE_IMAGE_API_KEY", "")
 BRAVE_IMAGE_SEARCH_URL = "https://api.search.brave.com/res/v1/images/search"
 ONEBOT_ACCESS_TOKEN = os.getenv("ONEBOT_ACCESS_TOKEN", "")
-IMAGE_RERANK_ENABLED = os.getenv("IMAGE_RERANK_ENABLED", "1") == "1"
+def _env_bool(name: str, default: bool) -> bool:
+    value = os.getenv(name)
+    return default if value is None else value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _env_float(name: str, default: float) -> float:
+    try:
+        return float(os.getenv(name, str(default)))
+    except (TypeError, ValueError):
+        return default
+
+
+def _env_int(name: str, default: int) -> int:
+    try:
+        return int(os.getenv(name, str(default)))
+    except (TypeError, ValueError):
+        return default
+
+
+IMAGE_RERANK_ENABLED = _env_bool("IMAGE_RERANK_ENABLED", True)
 EMOJI_LIBRARY_PATH = os.getenv("EMOJI_LIBRARY_PATH", "emoji_library.json")
 EMOJI_ASSET_DIR = os.getenv("EMOJI_ASSET_DIR", "emoji_assets")
 HUMOR_MEMORY_PATH = os.getenv("HUMOR_MEMORY_PATH", "humor_memory.json")
-PROACTIVE_EMOJI_ENABLED = os.getenv("PROACTIVE_EMOJI_ENABLED", "1") == "1"
-PROACTIVE_EMOJI_RATE = float(os.getenv("PROACTIVE_EMOJI_RATE", "0.18"))
-EMOJI_COOLDOWN_SECONDS = int(os.getenv("EMOJI_COOLDOWN_SECONDS", "120"))
+PROACTIVE_EMOJI_ENABLED = _env_bool("PROACTIVE_EMOJI_ENABLED", True)
+PROACTIVE_EMOJI_RATE = min(max(_env_float("PROACTIVE_EMOJI_RATE", 0.18), 0.0), 1.0)
+EMOJI_COOLDOWN_SECONDS = max(_env_int("EMOJI_COOLDOWN_SECONDS", 120), 0)
 MAX_SEARCH_IMAGES = 4
 MAX_IMAGE_CANDIDATES = 16
 MAX_RERANK_IMAGES = 8
 MAX_VISION_IMAGES = 6
 MAX_MEDIA_BYTES = 10 * 1024 * 1024
 
-# 管理员 / 老大 QQ
-MASTER_ID = "2123136525"
+# 管理员 QQ 从环境变量读取，避免公开仓库泄露个人标识。
+MASTER_ID = os.getenv("MASTER_ID", "").strip()
+if not MASTER_ID:
+    print("[配置提醒] MASTER_ID 未设置，管理员专属功能将关闭。")
 
 ds_client = AsyncOpenAI(api_key=DEEPSEEK_API_KEY, base_url=DEEPSEEK_BASE_URL)
 vision_client = AsyncOpenAI(api_key=VISION_API_KEY, base_url=VISION_BASE_URL)
