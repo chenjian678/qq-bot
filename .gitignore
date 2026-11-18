@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env
+.env.*
+!.env.example
+qqbot.env
+*.secret
+*.token
+emoji_assets/
+emoji_library.json
+humor_memory.json
+*.log
+.vscode/
+.idea/
