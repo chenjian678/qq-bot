@@ -717,6 +717,32 @@ def get_lock(session_id: str) -> asyncio.Lock:
         session_locks[session_id] = asyncio.Lock()
     return session_locks[session_id]
 
+
+def build_help_text() -> str:
+    return (
+        "QQ Bot 使用帮助\\n"
+        "私聊：直接发送消息\\n"
+        "群聊：@我后发送消息\\n\\n"
+        "常用命令：\\n"
+        "/帮助 或 /help：查看帮助\\n"
+        "/状态：查看运行配置状态\\n"
+        "/重置会话：清空当前聊天记忆\\n\\n"
+        "你还可以发送图片并说“解释一下”，或发送“搜索图片/壁纸/表情包”。"
+    )
+
+
+def build_status_text() -> str:
+    features = [
+        f"对话模型：{DEEPSEEK_MODEL}",
+        f"视觉功能：{'已配置' if VISION_API_KEY else '未配置'}",
+        f"网页搜索：{'已配置' if BOCHA_API_KEY else '未配置'}",
+        f"图片筛选：{'开启' if IMAGE_RERANK_ENABLED else '关闭'}",
+        f"主动表情：{'开启' if PROACTIVE_EMOJI_ENABLED else '关闭'}",
+        f"管理员功能：{'已配置' if MASTER_ID else '未配置'}",
+    ]
+    return "QQ Bot 当前状态\\n" + "\\n".join(features)
+
+
 def clean_output(text: str, user_id: str, bot_id: str) -> str:
     """强力清洗：去思考标签、去QQ号、去Markdown、砍掉结尾AI式追问"""
     if not text:
@@ -1037,6 +1063,21 @@ async def _(bot: Bot, event: MessageEvent):
 
         raw_text = raw_text.strip()
         plain_text = plain_text.strip()
+
+        # 内置轻量命令：让用户不依赖模型也能快速了解和控制机器人。
+        command = re.sub(r"\\s+", "", plain_text).lower()
+        if command in {"/帮助", "/help", "帮助", "菜单"}:
+            await send_to_event(bot, event, build_help_text())
+            return
+        if command in {"/状态", "/status", "状态"}:
+            await send_to_event(bot, event, build_status_text())
+            return
+        if command in {"/重置会话", "/清空记忆", "/reset"}:
+            async with get_lock(session_id):
+                session_histories.pop(session_id, None)
+            await send_to_event(bot, event, "这段聊天记忆清空了，咱们重新开始。")
+            return
+
         resend_requested = bool(
             emoji_segments and re.search(r"(?:再发|发一下|发这个|把这个|重复|转发|来一个)", plain_text)
         )
