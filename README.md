@@ -1,106 +1,176 @@
-# QQ Bot
+# qq-bot
 
-基于 NoneBot 2、OneBot v11 和 OpenAI 兼容 API 的 QQ 机器人，支持私聊、群聊 @、上下文对话、图片理解、图片搜索、文生图、QQ 空间动态和表情库。
+这是一个我自己用来挂 QQ 的机器人项目。
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
-![OneBot](https://img.shields.io/badge/OneBot-v11-5865F2)
-![License](https://img.shields.io/badge/license-not%20declared-lightgrey)
+它通过 OneBot v11 接收 QQ 消息，再调用 OpenAI 兼容接口生成回复。平时可以用它聊天、看图、搜图片，也可以让它生成图片。项目还保留了一些 QQ 空间和表情相关的功能。
 
-## 功能亮点
+## 目前能做什么
 
-- 文字对话：通过 DeepSeek 或其他 OpenAI 兼容 API 进行上下文聊天。
-- 图片理解：识别图片、动态表情和 GIF 关键帧。
-- 图片搜索：支持 Bing，可选 Brave，并可用视觉模型筛选结果。
-- 文生图：调用 OpenAI 兼容图片接口生成图片。
-- QQ 空间：读取当前账号有权限访问的空间动态。
-- 表情系统：支持 QQ 内置表情、自定义图片/GIF 表情和低频主动发送。
-- 会话记忆：私聊、群聊分别维护上下文，可随时重置。
-- 内置命令：用户可以直接输入 `/帮助`、`/状态`、`/重置会话`。
+- 私聊直接聊天；
+- 群里 @ 机器人后聊天；
+- 保存一段时间的聊天上下文；
+- 发送图片后让机器人解释图片；
+- 搜索图片、壁纸和表情包；
+- 调用图片模型生成图片；
+- 读取当前账号有权限访问的 QQ 空间动态；
+- 使用 QQ 内置表情和自定义表情；
+- 用命令查看帮助、运行状态和清空当前会话。
 
-## 对话示例
+## 常用命令
 
-| 你可以发送 | 机器人会做什么 |
+| 命令 | 作用 |
 | --- | --- |
-| `介绍一下自己` | 进行普通 AI 对话 |
-| `/帮助` | 显示使用说明 |
-| `/状态` | 显示模型和可选功能是否已配置 |
-| `/重置会话` | 清空当前私聊或群聊上下文 |
-| 发一张图片并说“解释一下” | 调用视觉模型分析图片 |
-| `搜索猫猫表情包` | 搜索并发送相关图片 |
-| `画一张赛博朋克城市` | 调用生图模型 |
+| `/帮助` 或 `/help` | 查看使用说明 |
+| `/状态` | 查看模型和功能配置状态 |
+| `/重置会话` | 清空当前私聊或群聊的上下文 |
+| `添加表情 名称` + 图片 | 把图片保存到本地表情库，管理员可用 |
 
-## 快速开始
+普通聊天不需要加命令。群聊里需要先 @ 机器人。
 
-需要 Python 3.10+、NapCat/go-cqhttp 等 OneBot v11 实现，以及至少一个聊天模型 API。
+## 运行环境
+
+- Python 3.10 及以上；
+- NapCat、go-cqhttp 或其他 OneBot v11 实现；
+- 一个可以使用的聊天模型 API；
+- 如果要看图、搜图或生图，还要配置相应的 API。
+
+## 安装
 
 ```bash
 git clone https://github.com/chenjian678/qq-bot.git
 cd qq-bot
+
 python -m venv .venv
-# Windows: .venv\\Scripts\\activate
-# Linux/macOS: source .venv/bin/activate
+```
+
+Windows：
+
+```powershell
+.venv\\Scripts\\Activate.ps1
+```
+
+Linux 或 macOS：
+
+```bash
+source .venv/bin/activate
+```
+
+安装依赖：
+
+```bash
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-复制 `qqbot.env.example`，至少配置：
+## 配置
+
+先复制配置模板：
+
+Windows PowerShell：
+
+```powershell
+Copy-Item qqbot.env.example .env
+```
+
+Linux 或 macOS：
+
+```bash
+cp qqbot.env.example .env
+```
+
+程序不会自动读取 `.env` 文件，需要把这些变量设置到启动程序的环境中。
+
+最少需要配置：
 
 ```dotenv
-DEEPSEEK_API_KEY=你的密钥
+DEEPSEEK_API_KEY=你的聊天模型密钥
 MASTER_ID=你的管理员QQ号
 ```
 
-启动：
+常用的可选配置：
 
-```bash
-python bot.py
+```dotenv
+VISION_API_KEY=你的视觉模型密钥
+BOCHA_API_KEY=你的网页搜索密钥
+BRAVE_IMAGE_API_KEY=你的 Brave 图片搜索密钥
+ONEBOT_ACCESS_TOKEN=你的 OneBot 访问令牌
 ```
 
-OneBot 反向 WebSocket 默认连接：
+其他模型地址和模型名称可以直接在 `qqbot.env.example` 里修改。
+
+## 连接 OneBot
+
+启动机器人后，让 OneBot 连接下面这个反向 WebSocket 地址：
 
 ```text
 ws://127.0.0.1:8090/onebot/v11/ws
 ```
 
-## 配置和可选能力
+如果机器人和 OneBot 不在同一台机器，把 `127.0.0.1` 换成机器人所在服务器的地址。
 
-| 变量 | 说明 | 默认值 |
-| --- | --- | --- |
-| `DEEPSEEK_MODEL` | 对话模型 | `deepseek-chat` |
-| `VISION_API_KEY` | 视觉和生图密钥 | 空 |
-| `VISION_MODEL` | 视觉模型 | `qwen3.8-max` |
-| `IMAGE_GEN_MODEL` | 生图模型 | `qwen-image-3.0-pro` |
-| `BOCHA_API_KEY` | 网页搜索密钥 | 空 |
-| `BRAVE_IMAGE_API_KEY` | Brave 图片搜索密钥 | 空 |
-| `IMAGE_RERANK_ENABLED` | 是否筛选图片 | `true` |
-| `PROACTIVE_EMOJI_RATE` | 主动表情概率 | `0.18` |
-| `EMOJI_COOLDOWN_SECONDS` | 表情冷却时间 | `120` |
+## 启动
 
-布尔值支持 `1`、`true`、`yes`、`on`。未设置 `MASTER_ID` 时，机器人仍可运行，但管理员功能关闭。
+推荐使用：
 
-## 项目结构
-
-```text
-bot.py                     # 主程序
-qqbot_enhanced.py          # 兼容旧启动命令
-qqbot.env.example          # 环境变量模板
-emoji_library.example.json # 表情库模板
-requirements.txt           # Python 依赖
-SECURITY.md                # 安全说明
+```bash
+python bot.py
 ```
 
-## 安全
+旧的启动文件也保留着：
 
-不要提交 API Key、OneBot Token、Cookies、QQ 号或运行时数据。密钥如果曾经进入 Git 历史，需要立即撤销并重新生成。
+```bash
+python qqbot_enhanced.py
+```
 
-运行时文件包括 `emoji_library.json`、`emoji_assets/` 和 `humor_memory.json`，已加入忽略规则。
+这两个入口使用的是同一份实现，后续代码只维护在 `bot.py`。
 
-## 开发检查
+## 示例
+
+私聊里可以直接发：
+
+```text
+你好
+帮我解释一下这张图
+搜索一张猫猫表情包
+画一张雨夜里的赛博朋克城市
+```
+
+群聊里先 @ 机器人，再发送内容。
+
+## 文件说明
+
+```text
+bot.py                     主程序
+qqbot_enhanced.py          兼容旧命令的入口
+qqbot.env.example          配置模板
+emoji_library.example.json 表情库示例
+requirements.txt           Python 依赖
+SECURITY.md                安全说明
+```
+
+运行后会产生一些本地文件：
+
+- `emoji_library.json`：自定义表情信息；
+- `emoji_assets/`：保存的图片和 GIF；
+- `humor_memory.json`：少量对话记忆；
+- `__pycache__/`：Python 缓存。
+
+这些文件已经写进 `.gitignore`，不会被提交。
+
+## 注意事项
+
+- 不要把 API Key、OneBot Token 或 Cookies 提交到 GitHub；
+- 如果密钥以前提交过，需要先撤销并重新生成；
+- 图片搜索结果来自第三方网站，使用时要注意版权；
+- QQ 空间只能读取当前账号有权限访问的内容；
+- 没有配置 `MASTER_ID` 时，机器人仍能聊天，但管理员命令不会生效。
+
+## 检查代码
+
+提交前可以运行：
 
 ```bash
 python -m py_compile bot.py qqbot_enhanced.py
 ```
 
-欢迎通过 Issue 反馈问题或提出新功能。后续计划包括 Docker 部署示例、自动化测试和更细的权限配置。
-
-仓库当前未声明许可证，二次分发前请补充许可证。
+这个项目目前更适合个人使用。如果你遇到问题，可以提交 Issue，并附上运行环境、报错信息和触发步骤，记得先删掉密钥和个人信息。
