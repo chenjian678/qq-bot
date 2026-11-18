@@ -1065,7 +1065,7 @@ async def _(bot: Bot, event: MessageEvent):
         plain_text = plain_text.strip()
 
         # 内置轻量命令：让用户不依赖模型也能快速了解和控制机器人。
-        command = re.sub(r"\\s+", "", plain_text).lower()
+        command = re.sub(r"\s+", "", plain_text).lower()
         if command in {"/帮助", "/help", "帮助", "菜单"}:
             await send_to_event(bot, event, build_help_text())
             return
